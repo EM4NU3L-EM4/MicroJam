@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Micro Jam da Semana</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #1e1e2f;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .jam-box {
+            background: #2e2e4f;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px #000;
+            max-width: 400px;
+        }
+
+        .jam-title {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .jam-info {
+            margin-bottom: 20px;
+        }
+
+        .jam-link {
+            color: #66ccff;
+            text-decoration: none;
+        }
+
+        .jam-link:hover {
+            text-decoration: underline;
+        }
+
+        .status {
+            color: #aaccff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="jam-box">
+        <div class="jam-title">Micro Jam da Semana</div>
+        <div id="jamCurrent" class="jam-info"></div>
+        <div id="jamPrevious" class="jam-info"></div>
+        <div id="jamNext" class="jam-info"></div>
+    </div>
+    <iframe frameborder="0" src="https://itch.io/embed/2661545" width="552" height="167"><a
+            href="https://itch.io/jam/micro-jam-037">(old) ACJ - A Colorful Jump by EM4 Studios</a></iframe>
+    <script>
+        function formatDate(date) {
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function createJamInfo(jamNumber, startDate) {
+            const endDate = new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 dias
+            const votingEnd = new Date(endDate.getTime() + 2 * 24 * 60 * 60 * 1000); // +2 dias para votação
+
+            const link = `https://itch.io/jam/micro-jam-0${jamNumber}`;
+            return {
+                jamNumber,
+                link,
+                startDate,
+                endDate,
+                votingEnd
+            };
+        }
+
+        function getJamData() {
+            const baseDate = new Date('2025-03-22T00:00:00'); // Micro Jam 36
+            const now = new Date();
+            const msPerDay = 24 * 60 * 60 * 1000;
+            const daysSinceStart = Math.floor((now - baseDate) / msPerDay);
+            const jamIndex = Math.floor(daysSinceStart / 14);
+
+            const currentJamStart = new Date(baseDate.getTime() + jamIndex * 14 * msPerDay);
+            const previousJamStart = new Date(currentJamStart.getTime() - 14 * msPerDay);
+            const nextJamStart = new Date(currentJamStart.getTime() + 14 * msPerDay);
+
+            return {
+                previous: createJamInfo(36 + jamIndex - 1, previousJamStart),
+                current: createJamInfo(36 + jamIndex, currentJamStart),
+                next: createJamInfo(36 + jamIndex + 1, nextJamStart)
+            };
+        }
+
+        function renderJamInfo() {
+            const { current, previous, next } = getJamData();
+            const now = new Date();
+
+            function jamHTML(jam, label) {
+                let status = "";
+                if (now >= jam.startDate && now < jam.endDate) {
+                    status = "⏳ Em andamento!";
+                } else if (now >= jam.endDate && now < jam.votingEnd) {
+                    status = "🗳️ Em votação!";
+                } else if (now < jam.startDate) {
+                    status = "🔜 Por vir!";
+                } else {
+                    status = "✅ Finalizada.";
+                }
+
+                return `
+          <div><strong>${label}</strong></div>
+          <div><a class="jam-link" href="${jam.link}" target="_blank">Micro Jam ${jam.jamNumber}</a></div>
+          <div>${formatDate(jam.startDate)} até ${formatDate(jam.endDate)}</div>
+          <div class="status">${status}</div>
+        `;
+            }
+
+            document.getElementById('jamCurrent').innerHTML = jamHTML(current, "Jam atual:");
+            document.getElementById('jamPrevious').innerHTML = jamHTML(previous, "Anterior:");
+            document.getElementById('jamNext').innerHTML = jamHTML(next, "Próxima:");
+        }
+
+        renderJamInfo();
+    </script>
+
+</body>
+
+</html>
